@@ -33,7 +33,7 @@ const deleteCard = async (req, res) => {
   try {
     const card = await Card.findByIdAndDelete(cardId);
     if (!card) {
-      return res.status(404).json({ message: 'Карты не существует' });
+      return res.status(404).json({ message: 'Карта не найдена' });
     }
     return res.status(200).json({ message: 'Карта удалена' });
   } catch (error) {
@@ -52,11 +52,10 @@ const deleteLike = async (req, res) => {
       { new: true },
     );
 
-    if (updatedCard) {
-      return res.status(200).json(updatedCard);
+    if (!updatedCard) {
+      return res.status(404).json({ message: 'Карточка не найдена' });
     }
-
-    return res.status(404).json({ message: 'Карточка не найдена' });
+    return res.status(200).json(updatedCard);
   } catch (error) {
     return res.status(500).json({ message: error.message });
   }
@@ -73,11 +72,11 @@ const putLike = async (req, res) => {
       { new: true },
     );
 
-    if (likedCard) {
-      return res.status(200).json(likedCard);
+    if (!likedCard) {
+      return res.status(404).json({ message: 'Карточка не найдена' });
     }
 
-    return res.status(404).json({ message: 'Карточка не найдена' });
+    return res.status(200).json(likedCard);
   } catch (error) {
     return res.status(500).json({ message: error.message });
   }

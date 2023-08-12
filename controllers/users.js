@@ -42,20 +42,17 @@ const postUser = async (req, res) => {
 const updateUser = async (req, res) => {
   try {
     const { name, bio } = req.body;
-
-    if (name || bio) {
-      const user = await User.findById(req.user._id);
-      if (!user) {
-        return res.status(404).json({ mesage: 'Пользователь не найден' });
-      }
-      const updatedUser = await User.findByIdAndUpdate(req.user._id, req.body, {
-        new: true,
-      });
-
-      return res.status(200).json(updatedUser);
+    if (!name && !bio) {
+      return res.status(404).json('Данные не заполнены');
+    }
+    const updatedUser = await User.findByIdAndUpdate(req.user._id, req.body, {
+      new: true,
+    });
+    if (!updatedUser) {
+      return res.status(404).json({ mesage: 'Пользователь не найден' });
     }
 
-    return res.status(404).json('Данные не заполнены');
+    return res.status(200).json(updatedUser);
   } catch (error) {
     return res.status(500).json({ mesage: error.mesage });
   }
@@ -63,25 +60,26 @@ const updateUser = async (req, res) => {
 const updateUserAvatar = async (req, res) => {
   try {
     const { avatar } = req.body;
-
-    if (avatar) {
-      const user = await User.findById(req.user._id);
-      if (!user) {
-        return res.status(404).json({ mesage: 'Пользователь не найден' });
-      }
-      const updatedUser = await User.findByIdAndUpdate(
-        req.user._id,
-        {
-          avatar,
-        },
-        { new: true },
-      );
-
-      return res.status(200).json(updatedUser);
+    if (!avatar) {
+      return res.status(404).json('Не указана ссылка на изображение');
     }
 
-    return res.status(404).json('Данные не заполнены');
+    const updatedUser = await User.findByIdAndUpdate(
+      req.user._id,
+      {
+        avatar,
+      },
+      { new: true },
+    );
+
+    if (!updatedUser) {
+      return res.status(404).json({ mesage: 'Пользователь не найден' });
+    }
+    return res.status(200).json(updatedUser);
   } catch (error) {
+    if (error.name === 'ValidationError') {
+      return res.status(400).json({ message: error.message });
+    }
     return res.status(500).json({ mesage: error.mesage });
   }
 };
