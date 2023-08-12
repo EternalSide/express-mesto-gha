@@ -24,7 +24,7 @@ app.use('/cards', cardsRoute);
 
 // DB
 mongoose
-  .connect(process.env.DB_URI)
+  .connect(`mongodb://127.0.0.1:27017/mestodb`)
   .then(() => {
     console.log('Подключение к БД успешно.');
   })
