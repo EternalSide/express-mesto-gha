@@ -15,7 +15,7 @@ const getUserById = async (req, res) => {
     const { userId } = req.params;
     const user = await User.findById(userId);
     if (!user) {
-      return res.status(404).json({ message: 'Пользователь не найден' });
+      return res.status(400).json({ message: 'Пользователь не найден' });
     }
     return res.status(200).json(user);
   } catch (error) {
@@ -28,14 +28,18 @@ const postUser = async (req, res) => {
     const { name, about, avatar } = req.body;
 
     if (!name || !about || !avatar) {
-      return res.json({ message: 'Данные не заполнены' });
+      return res.status(400).json({ message: 'Данные не заполнены' });
     }
 
     const user = await User.create(req.body);
 
     return res.status(200).json(user);
   } catch (error) {
-    return res.status(500).json({ mesage: error.mesage });
+    console.log(error.message);
+    if (error.name === 'ValidationError') {
+      return res.status(400).json({ message: error.message });
+    }
+    return res.status(500).json({ message: error.message });
   }
 };
 
@@ -49,12 +53,15 @@ const updateUser = async (req, res) => {
       new: true,
     });
     if (!updatedUser) {
-      return res.status(404).json({ mesage: 'Пользователь не найден' });
+      return res.status(404).json({ message: 'Пользователь не найден' });
     }
 
     return res.status(200).json(updatedUser);
   } catch (error) {
-    return res.status(500).json({ mesage: error.mesage });
+    if (error.name === 'ValidationError') {
+      return res.status(400).json({ message: error.message });
+    }
+    return res.status(500).json({ message: error.message });
   }
 };
 const updateUserAvatar = async (req, res) => {
@@ -73,14 +80,14 @@ const updateUserAvatar = async (req, res) => {
     );
 
     if (!updatedUser) {
-      return res.status(404).json({ mesage: 'Пользователь не найден' });
+      return res.status(404).json({ message: 'Пользователь не найден' });
     }
     return res.status(200).json(updatedUser);
   } catch (error) {
     if (error.name === 'ValidationError') {
       return res.status(400).json({ message: error.message });
     }
-    return res.status(500).json({ mesage: error.mesage });
+    return res.status(500).json({ message: error.message });
   }
 };
 
