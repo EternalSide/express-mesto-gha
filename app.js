@@ -22,6 +22,7 @@ const cardsRoute = require('./routes/cards');
 app.use('/users', usersRoute);
 app.use('/cards', cardsRoute);
 
+// 404
 app.use((req, res) => {
   res.status(404).json({ message: 'Некорректный запрос' });
 });

@@ -38,7 +38,6 @@ const postUser = async (req, res) => {
 
     return res.status(200).json(user);
   } catch (error) {
-    console.log(error.message);
     if (error.name === 'ValidationError') {
       return res.status(400).json({ message: error.message });
     }
