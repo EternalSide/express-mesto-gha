@@ -21,7 +21,8 @@ const cardsRoute = require('./routes/cards');
 
 app.use('/users', usersRoute);
 app.use('/cards', cardsRoute);
-app.get('*', (req, res) => {
+
+app.use((req, res) => {
   res.status(404).json({ message: 'Некорректный запрос' });
 });
 // DB
