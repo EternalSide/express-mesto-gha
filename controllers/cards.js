@@ -14,7 +14,7 @@ const postCard = async (req, res) => {
   try {
     const { name, link } = req.body;
     if (!name || !link) {
-      return res.status(404).json({ message: 'Не достаточно данных' });
+      return res.status(400).json({ message: 'Не достаточно данных' });
     }
 
     const newCard = await Card.create({ name, link, owner: req.user._id });
@@ -33,7 +33,7 @@ const deleteCard = async (req, res) => {
   try {
     const card = await Card.findByIdAndDelete(cardId);
     if (!card) {
-      return res.status(404).json({ message: 'Карта не найдена' });
+      return res.status(400).json({ message: 'Карта не найдена' });
     }
     return res.status(200).json({ message: 'Карта удалена' });
   } catch (error) {
@@ -53,7 +53,7 @@ const deleteLike = async (req, res) => {
     );
 
     if (!updatedCard) {
-      return res.status(404).json({ message: 'Карточка не найдена' });
+      return res.status(400).json({ message: 'Карточка не найдена' });
     }
     return res.status(200).json(updatedCard);
   } catch (error) {
@@ -73,7 +73,7 @@ const putLike = async (req, res) => {
     );
 
     if (!likedCard) {
-      return res.status(404).json({ message: 'Карточка не найдена' });
+      return res.status(400).json({ message: 'Карточка не найдена' });
     }
 
     return res.status(200).json(likedCard);
