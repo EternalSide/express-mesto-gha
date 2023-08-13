@@ -29,11 +29,14 @@ const postCard = async (req, res) => {
 };
 
 const deleteCard = async (req, res) => {
-  const { cardId } = req.params;
   try {
+    const { cardId } = req.params;
+    if (cardId.length !== 24) {
+      return res.status(400).json({ message: 'Некорректный ID' });
+    }
     const card = await Card.findByIdAndDelete(cardId);
     if (!card) {
-      return res.status(400).json({ message: 'Карта не найдена' });
+      return res.status(404).json({ message: 'Карта не найдена' });
     }
     return res.status(200).json({ message: 'Карта удалена' });
   } catch (error) {
@@ -45,7 +48,9 @@ const deleteLike = async (req, res) => {
   try {
     const userId = req.user._id;
     const { cardId } = req.params;
-
+    if (cardId.length !== 24) {
+      return res.status(400).json({ message: 'Некорректный ID' });
+    }
     const updatedCard = await Card.findByIdAndUpdate(
       cardId,
       { $pull: { likes: userId } }, // убрать _id из массива
@@ -53,7 +58,7 @@ const deleteLike = async (req, res) => {
     );
 
     if (!updatedCard) {
-      return res.status(400).json({ message: 'Карточка не найдена' });
+      return res.status(404).json({ message: 'Карточка не найдена' });
     }
     return res.status(200).json(updatedCard);
   } catch (error) {
@@ -65,7 +70,9 @@ const putLike = async (req, res) => {
   try {
     const userId = req.user._id;
     const { cardId } = req.params;
-
+    if (cardId.length !== 24) {
+      return res.status(400).json({ message: 'Некорректный ID' });
+    }
     const likedCard = await Card.findByIdAndUpdate(
       cardId,
       { $addToSet: { likes: userId } }, // добавить _id в массив, если его там нет
@@ -73,7 +80,7 @@ const putLike = async (req, res) => {
     );
 
     if (!likedCard) {
-      return res.status(400).json({ message: 'Карточка не найдена' });
+      return res.status(404).json({ message: 'Карточка не найдена' });
     }
 
     return res.status(200).json(likedCard);

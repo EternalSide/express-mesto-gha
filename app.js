@@ -21,7 +21,9 @@ const cardsRoute = require('./routes/cards');
 
 app.use('/users', usersRoute);
 app.use('/cards', cardsRoute);
-
+app.get('*', (req, res) => {
+  res.status(404).json({ message: 'Некорректный запрос' });
+});
 // DB
 mongoose
   .connect('mongodb://127.0.0.1:27017/mestodb')

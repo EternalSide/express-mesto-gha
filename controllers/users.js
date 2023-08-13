@@ -48,11 +48,13 @@ const postUser = async (req, res) => {
 
 const updateUser = async (req, res) => {
   try {
-    const { name, bio } = req.body;
-    if (!name && !bio) {
+    const { name, about } = req.body;
+
+    if (!name && !about) {
       return res.status(404).json('Данные не заполнены');
     }
     const updatedUser = await User.findByIdAndUpdate(req.user._id, req.body, {
+      runValidators: true,
       new: true,
     });
     if (!updatedUser) {
