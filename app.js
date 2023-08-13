@@ -5,9 +5,12 @@ const app = express();
 require('dotenv').config();
 
 const PORT = process.env.PORT || 3000;
+const helmet = require('helmet');
 
 // middleware
+app.use(helmet());
 app.use(express.json());
+
 app.use((req, res, next) => {
   req.user = {
     _id: '64d78495a51659672395f38b',

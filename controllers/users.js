@@ -36,7 +36,7 @@ const postUser = async (req, res) => {
 
     const user = await User.create(req.body);
 
-    return res.status(200).json(user);
+    return res.status(201).json(user);
   } catch (error) {
     if (error.name === 'ValidationError') {
       return res.status(400).json({ message: error.message });
@@ -50,7 +50,7 @@ const updateUser = async (req, res) => {
     const { name, about } = req.body;
 
     if (!name && !about) {
-      return res.status(404).json('Данные не заполнены');
+      return res.status(400).json('Данные не заполнены');
     }
     const updatedUser = await User.findByIdAndUpdate(req.user._id, req.body, {
       runValidators: true,
@@ -72,7 +72,7 @@ const updateUserAvatar = async (req, res) => {
   try {
     const { avatar } = req.body;
     if (!avatar) {
-      return res.status(404).json('Не указана ссылка на изображение');
+      return res.status(400).json('Не указана ссылка на изображение');
     }
 
     const updatedUser = await User.findByIdAndUpdate(

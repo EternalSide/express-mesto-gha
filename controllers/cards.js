@@ -19,7 +19,7 @@ const postCard = async (req, res) => {
 
     const newCard = await Card.create({ name, link, owner: req.user._id });
 
-    return res.status(200).json(newCard);
+    return res.status(201).json(newCard);
   } catch (error) {
     if (error.name === 'ValidationError') {
       return res.status(400).json({ message: error.message });
