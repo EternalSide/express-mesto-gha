@@ -10,7 +10,7 @@ const cardSchema = new mongoose.Schema(
     },
     link: {
       type: String,
-      required: [true, 'URL карточки обязательно к заполнению.'],
+      required: [true, 'URL карточки обязателен к заполнению.'],
       validate: {
         validator(url) {
           return /^https?:\/\/(?:www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b(?:[-a-zA-Z0-9()@:%_+.~#?&/=]*)$/.test(
