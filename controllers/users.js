@@ -17,15 +17,13 @@ const createUser = async (req, res, next) => {
       password: hashedPassword,
     });
 
-    return res
-      .status(201)
-      .json({
-        name: user.name,
-        about: user.about,
-        avatar: user.avatar,
-        _id: user._id,
-        email: user.email,
-      });
+    return res.status(201).json({
+      name: user.name,
+      about: user.about,
+      avatar: user.avatar,
+      _id: user._id,
+      email: user.email,
+    });
   } catch (e) {
     if (e.code === 11000) {
       next(new ConflictError('Пользователь с таким email уже существует.'));
@@ -57,6 +55,7 @@ const getUserInfo = async (req, res, next) => {
 
     return res.json(user);
   } catch (e) {
+    console.log(e);
     return next(e);
   }
 };

@@ -2,7 +2,6 @@ const { Schema, model } = require('mongoose');
 
 const bcrypt = require('bcrypt');
 const UnauthorizedError = require('../errors/Unauthorized');
-const ForbiddenError = require('../errors/Forbidden');
 
 const userSchema = new Schema(
   {
@@ -41,13 +40,10 @@ const userSchema = new Schema(
     },
     avatar: {
       type: String,
-      default:
-        'https://pictures.s3.yandex.net/resources/jacques-cousteau_1604399756.png',
+      default: 'https://pictures.s3.yandex.net/resources/jacques-cousteau_1604399756.png',
       validate: {
         validator(url) {
-          return /^https?:\/\/(?:www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b(?:[-a-zA-Z0-9()@:%_+.~#?&/=]*)$/.test(
-            url,
-          );
+          return /^https?:\/\/(?:www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b(?:[-a-zA-Z0-9()@:%_+.~#?&/=]*)$/.test(url);
         },
       },
     },
@@ -55,7 +51,7 @@ const userSchema = new Schema(
   { versionKey: false },
 );
 
-userSchema.statics.findUserByCredentials = function (email, password) {
+userSchema.statics.findUserByCredentials = function findUserByCredentials(email, password) {
   return this.findOne({ email })
     .select('+password')
     .then((user) => {
