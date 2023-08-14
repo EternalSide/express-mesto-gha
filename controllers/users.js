@@ -14,9 +14,7 @@ const createUser = async (req, res, next) => {
 
     const user = await User.create({ ...req.body, password: hashedPassword });
 
-    const token = jwt.sign({ user }, 'TOP_SECRET');
-
-    return res.status(201).json({ user, token });
+    return res.status(201).json(user);
   } catch (e) {
     if (e.code === 11000) {
       next(new ConflictError('Пользователь с таким email уже существует.'));
