@@ -1,79 +1,109 @@
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 const User = require('../models/user');
 
-const getUsers = async (req, res) => {
+const NotFoundError = require('../errors/NotFound');
+const BadRequestError = require('../errors/BadRequest');
+const ConflictError = require('../errors/Conflict');
+
+const login = async (req, res, next) => {
+  try {
+    const { email, password } = req.body;
+    const user = await User.findUserByCredentials(email, password);
+
+    const token = jwt.sign({ _id: user._id }, 'TOP_SECRET', {
+      expiresIn: '7d',
+    });
+
+    return res.json({ token });
+  } catch (e) {
+    return next(e);
+  }
+};
+
+const getUserInfo = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.user._id);
+
+    return res.json(user);
+  } catch (e) {
+    return next(e);
+  }
+};
+
+const getUsers = async (req, res, next) => {
   try {
     const users = await User.find({});
 
-    return res.status(200).json(users);
-  } catch (error) {
-    return res.status(500).json({ message: error.message });
+    return res.json(users);
+  } catch (e) {
+    return next(e);
   }
 };
 
-const getUserById = async (req, res) => {
+const getUserById = async (req, res, next) => {
   try {
     const { userId } = req.params;
-    if (userId.length !== 24) {
-      return res.status(400).json({ message: 'Некорректный ID' });
+
+    const user = await User.findById(userId).orFail();
+
+    return res.json(user);
+  } catch (e) {
+    if (e.name === 'CastError') {
+      next(new BadRequestError('Некорректный ID'));
     }
-    const user = await User.findById(userId);
-    if (!user) {
-      return res.status(404).json({ message: 'Пользователь не найден' });
+
+    if (e.name === 'DocumentNotFoundError') {
+      next(new NotFoundError('Пользователь не найден'));
     }
-    return res.status(200).json(user);
-  } catch (error) {
-    return res.status(500).json({ message: error.message });
+
+    return next(e);
   }
 };
 
-const postUser = async (req, res) => {
+const createUser = async (req, res, next) => {
   try {
-    const { name, about, avatar } = req.body;
+    const { password } = req.body;
 
-    if (!name || !about || !avatar) {
-      return res.status(400).json({ message: 'Данные не заполнены' });
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const user = await User.create({ ...req.body, password: hashedPassword });
+
+    const token = jwt.sign({ user }, 'TOP_SECRET');
+
+    return res.status(201).json({ user, token });
+  } catch (e) {
+    if (e.code === 11000) {
+      next(new ConflictError('Пользователь с таким email уже существует.'));
     }
-
-    const user = await User.create(req.body);
-
-    return res.status(201).json(user);
-  } catch (error) {
-    if (error.name === 'ValidationError') {
-      return res.status(400).json({ message: error.message });
+    if (e.name === 'ValidationError') {
+      next(new BadRequestError('Заполнены не все поля.'));
     }
-    return res.status(500).json({ message: error.message });
+    return next(e);
   }
 };
 
-const updateUser = async (req, res) => {
+const updateUser = async (req, res, next) => {
   try {
-    const { name, about } = req.body;
-
-    if (!name && !about) {
-      return res.status(400).json('Данные не заполнены');
-    }
     const updatedUser = await User.findByIdAndUpdate(req.user._id, req.body, {
       runValidators: true,
       new: true,
-    });
-    if (!updatedUser) {
-      return res.status(404).json({ message: 'Пользователь не найден' });
-    }
+    }).orFail();
 
-    return res.status(200).json(updatedUser);
-  } catch (error) {
-    if (error.name === 'ValidationError') {
-      return res.status(400).json({ message: error.message });
+    return res.json(updatedUser);
+  } catch (e) {
+    if (e.name === 'ValidationError') {
+      return next(new BadRequestError(e.message));
     }
-    return res.status(500).json({ message: error.message });
+    if (e.name === 'DocumentNotFoundError') {
+      return next(new NotFoundError('Пользователь не найден'));
+    }
+    return next(e);
   }
 };
-const updateUserAvatar = async (req, res) => {
+const updateUserAvatar = async (req, res, next) => {
   try {
     const { avatar } = req.body;
-    if (!avatar) {
-      return res.status(400).json('Не указана ссылка на изображение');
-    }
 
     const updatedUser = await User.findByIdAndUpdate(
       req.user._id,
@@ -81,24 +111,26 @@ const updateUserAvatar = async (req, res) => {
         avatar,
       },
       { new: true },
-    );
+    ).orFail();
 
-    if (!updatedUser) {
-      return res.status(404).json({ message: 'Пользователь не найден' });
+    return res.json(updatedUser);
+  } catch (e) {
+    if (e.name === 'ValidationError') {
+      return next(new BadRequestError(e.message));
     }
-    return res.status(200).json(updatedUser);
-  } catch (error) {
-    if (error.name === 'ValidationError') {
-      return res.status(400).json({ message: error.message });
+    if (e.name === 'DocumentNotFoundError') {
+      return next(new NotFoundError('Пользователь не найден'));
     }
-    return res.status(500).json({ message: error.message });
+    return next(e);
   }
 };
 
 module.exports = {
+  login,
   getUsers,
   getUserById,
-  postUser,
+  createUser,
   updateUser,
   updateUserAvatar,
+  getUserInfo,
 };

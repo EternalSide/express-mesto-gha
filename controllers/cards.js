@@ -1,91 +1,105 @@
+const BadRequestError = require('../errors/BadRequest');
+const ForbiddenError = require('../errors/Forbidden');
+const NotFoundError = require('../errors/NotFound');
 const Card = require('../models/card');
 
-const getCards = async (req, res) => {
+const getCards = async (req, res, next) => {
   try {
     const cards = await Card.find({});
 
     return res.status(200).json(cards);
-  } catch (error) {
-    return res.status(500).json({ message: error.message });
+  } catch (e) {
+    return next(e);
   }
 };
 
-const postCard = async (req, res) => {
+const postCard = async (req, res, next) => {
   try {
     const { name, link } = req.body;
-    if (!name || !link) {
-      return res.status(400).json({ message: 'Не достаточно данных' });
-    }
 
-    const newCard = await Card.create({ name, link, owner: req.user._id });
+    const newCard = await Card.create({
+      name,
+      link,
+      owner: req.user._id,
+    });
 
     return res.status(201).json(newCard);
-  } catch (error) {
-    if (error.name === 'ValidationError') {
-      return res.status(400).json({ message: error.message });
+  } catch (e) {
+    if (e.name === 'ValidationError') {
+      return next(new BadRequestError(e.message));
     }
-    return res.status(500).json({ message: error.message });
+    return next(e);
   }
 };
 
-const deleteCard = async (req, res) => {
+const deleteCard = async (req, res, next) => {
   try {
     const { cardId } = req.params;
-    if (cardId.length !== 24) {
-      return res.status(400).json({ message: 'Некорректный ID' });
+
+    const card = await Card.findById(cardId).orFail();
+    const isUserOwner = card.owner.toString() === req.user._id;
+
+    if (!isUserOwner) {
+      throw new ForbiddenError('У вас нет прав удалить эту карточку');
     }
-    const card = await Card.findByIdAndDelete(cardId);
-    if (!card) {
-      return res.status(404).json({ message: 'Карта не найдена' });
+
+    const deletedCard = await Card.deleteOne(card).orFail();
+
+    return res.status(200).json({ message: 'Карта удалена', deletedCard });
+  } catch (e) {
+    if (e.name === 'DocumentNotFoundError') {
+      return next(new NotFoundError('Карточка не найдена'));
     }
-    return res.status(200).json({ message: 'Карта удалена' });
-  } catch (error) {
-    return res.status(500).json({ message: error.message });
+    if (e.name === 'CastError') {
+      return next(new NotFoundError('Некорректный ID'));
+    }
+    return next(e);
   }
 };
 
-const deleteLike = async (req, res) => {
+const deleteLike = async (req, res, next) => {
   try {
     const userId = req.user._id;
     const { cardId } = req.params;
-    if (cardId.length !== 24) {
-      return res.status(400).json({ message: 'Некорректный ID' });
-    }
+
     const updatedCard = await Card.findByIdAndUpdate(
       cardId,
-      { $pull: { likes: userId } }, // убрать _id из массива
+      { $pull: { likes: userId } },
       { new: true },
-    );
+    ).orFail();
 
-    if (!updatedCard) {
-      return res.status(404).json({ message: 'Карточка не найдена' });
-    }
     return res.status(200).json(updatedCard);
-  } catch (error) {
-    return res.status(500).json({ message: error.message });
+  } catch (e) {
+    if (e.name === 'DocumentNotFoundError') {
+      return next(new NotFoundError('Карточка не найдена'));
+    }
+    if (e.name === 'CastError') {
+      return next(new NotFoundError('Некорректный ID'));
+    }
+    return next(e);
   }
 };
 
-const putLike = async (req, res) => {
+const putLike = async (req, res, next) => {
   try {
     const userId = req.user._id;
     const { cardId } = req.params;
-    if (cardId.length !== 24) {
-      return res.status(400).json({ message: 'Некорректный ID' });
-    }
+
     const likedCard = await Card.findByIdAndUpdate(
       cardId,
-      { $addToSet: { likes: userId } }, // добавить _id в массив, если его там нет
+      { $addToSet: { likes: userId } },
       { new: true },
-    );
-
-    if (!likedCard) {
-      return res.status(404).json({ message: 'Карточка не найдена' });
-    }
+    ).orFail();
 
     return res.status(200).json(likedCard);
-  } catch (error) {
-    return res.status(500).json({ message: error.message });
+  } catch (e) {
+    if (e.name === 'DocumentNotFoundError') {
+      return next(new NotFoundError('Карточка не найдена'));
+    }
+    if (e.name === 'CastError') {
+      return next(new NotFoundError('Некорректный ID'));
+    }
+    return next(e);
   }
 };
 

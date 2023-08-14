@@ -11,24 +11,35 @@ const helmet = require('helmet');
 app.use(helmet());
 app.use(express.json());
 
-app.use((req, res, next) => {
-  req.user = {
-    _id: '64d78495a51659672395f38b',
-  };
-  next();
-});
-
 // Routes
 const usersRoute = require('./routes/users');
 const cardsRoute = require('./routes/cards');
+const { login, createUser } = require('./controllers/users');
+const auth = require('./middlewares/auth');
+
+app.post('/signin', login);
+app.post('/signup', createUser);
+
+// auth middleware
+app.use(auth);
 
 app.use('/users', usersRoute);
 app.use('/cards', cardsRoute);
+
+// Ошибки
+app.use((err, req, res, next) => {
+  const { statusCode = 500, message } = err;
+  res.status(statusCode).send({
+    message: statusCode === 500 ? 'Ошибка на стороне сервера' : message,
+  });
+  next();
+});
 
 // 404
 app.use((req, res) => {
   res.status(404).json({ message: 'Некорректный запрос' });
 });
+
 // DB
 mongoose
   .connect('mongodb://127.0.0.1:27017/mestodb')
