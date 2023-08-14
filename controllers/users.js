@@ -6,6 +6,27 @@ const NotFoundError = require('../errors/NotFound');
 const BadRequestError = require('../errors/BadRequest');
 const ConflictError = require('../errors/Conflict');
 
+const createUser = async (req, res, next) => {
+  try {
+    const { password } = req.body;
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const user = await User.create({ ...req.body, password: hashedPassword });
+
+    const token = jwt.sign({ user }, 'TOP_SECRET');
+
+    return res.status(201).json({ user, token });
+  } catch (e) {
+    if (e.code === 11000) {
+      next(new ConflictError('Пользователь с таким email уже существует.'));
+    }
+    if (e.name === 'ValidationError') {
+      next(new BadRequestError(e.message));
+    }
+    return next(e);
+  }
+};
 const login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
@@ -57,28 +78,6 @@ const getUserById = async (req, res, next) => {
       next(new NotFoundError('Пользователь не найден'));
     }
 
-    return next(e);
-  }
-};
-
-const createUser = async (req, res, next) => {
-  try {
-    const { password } = req.body;
-
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    const user = await User.create({ ...req.body, password: hashedPassword });
-
-    const token = jwt.sign({ user }, 'TOP_SECRET');
-
-    return res.status(201).json({ user, token });
-  } catch (e) {
-    if (e.code === 11000) {
-      next(new ConflictError('Пользователь с таким email уже существует.'));
-    }
-    if (e.name === 'ValidationError') {
-      next(new BadRequestError('Заполнены не все поля.'));
-    }
     return next(e);
   }
 };

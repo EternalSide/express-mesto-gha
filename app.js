@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 
 const app = express();
 require('dotenv').config();
+const { celebrate, Joi, errors } = require('celebrate');
 
 const PORT = process.env.PORT || 3000;
 const helmet = require('helmet');
@@ -16,17 +17,41 @@ const usersRoute = require('./routes/users');
 const cardsRoute = require('./routes/cards');
 const { login, createUser } = require('./controllers/users');
 const auth = require('./middlewares/auth');
+const { urlRegex, emailRegex } = require('./utils/regex');
 
-app.post('/signin', login);
-app.post('/signup', createUser);
+app.post(
+  '/signin',
+  celebrate({
+    body: Joi.object().keys({
+      email: Joi.string().required().email().pattern(emailRegex),
+      password: Joi.string().required().min(2),
+    }),
+  }),
+  login,
+);
+app.post(
+  '/signup',
+  celebrate({
+    body: Joi.object().keys({
+      email: Joi.string().required().email().pattern(emailRegex),
+      password: Joi.string().required().min(2),
+      name: Joi.string().min(2).max(30),
+      about: Joi.string().min(2).max(30),
+      avatar: Joi.string().pattern(urlRegex),
+    }),
+  }),
+  createUser,
+);
 
 // auth middleware
-app.use(auth);
+// app.use(auth);
 
 app.use('/users', usersRoute);
 app.use('/cards', cardsRoute);
 
 // Ошибки
+app.use(errors());
+
 app.use((err, req, res, next) => {
   const { statusCode = 500, message } = err;
   res.status(statusCode).send({

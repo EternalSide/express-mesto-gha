@@ -1,5 +1,5 @@
 const { Schema, model } = require('mongoose');
-const validator = require('validator');
+
 const bcrypt = require('bcrypt');
 const UnauthorizedError = require('../errors/Unauthorized');
 
@@ -13,7 +13,7 @@ const userSchema = new Schema(
       unique: true,
       validate: {
         validator(email) {
-          validator.isEmail(email);
+          return /^\S+@\S+\.\S+$/.test(email);
         },
         message: 'Введите Email',
       },
@@ -22,7 +22,6 @@ const userSchema = new Schema(
       type: String,
       required: [true, 'Пароль обязателен  к заполнению'],
       minlength: 2,
-      maxlength: 111,
       select: false,
     },
 

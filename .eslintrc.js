@@ -1,4 +1,4 @@
-module.exports = {
+
   env: {
     browser: true,
     commonjs: true,
@@ -15,4 +15,4 @@ module.exports = {
     'no-console': 'off',
     'trailing-comma': 0,
   },
-};
+
