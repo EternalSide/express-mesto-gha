@@ -12,9 +12,20 @@ const createUser = async (req, res, next) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const user = await User.create({ ...req.body, password: hashedPassword });
+    const user = await User.create({
+      ...req.body,
+      password: hashedPassword,
+    });
 
-    return res.status(201).json(user);
+    return res
+      .status(201)
+      .json({
+        name: user.name,
+        about: user.about,
+        avatar: user.avatar,
+        _id: user._id,
+        email: user.email,
+      });
   } catch (e) {
     if (e.code === 11000) {
       next(new ConflictError('Пользователь с таким email уже существует.'));
