@@ -44,7 +44,7 @@ app.post(
 );
 
 // auth middleware
-// app.use(auth);
+app.use(auth);
 
 app.use('/users', usersRoute);
 app.use('/cards', cardsRoute);
