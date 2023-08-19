@@ -40,7 +40,7 @@ const corsOptions = {
   credentials: true,
   optionSuccessStatus: 200,
 };
-app.use(cors(corsOptions));
+// app.use(cors(corsOptions));
 // Apply the rate limiting middleware to all requests
 // app.use(limiter);
 
