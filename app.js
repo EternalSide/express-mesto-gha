@@ -10,17 +10,19 @@ const { errors } = require('celebrate');
 
 const PORT = process.env.PORT || 3000;
 const helmet = require('helmet');
-const rateLimit = require('express-rate-limit');
+
 const { requestLogger, errorLogger } = require('./middlewares/logger');
 
 const errorHandler = require('./middlewares/error-handler');
 
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 100,
-  standardHeaders: true,
-  legacyHeaders: false,
-});
+// вырубил для тестов
+// const rateLimit = require('express-rate-limit');
+// const limiter = rateLimit({
+//   windowMs: 15 * 60 * 1000,
+//   max: 100,
+//   standardHeaders: true,
+//   legacyHeaders: false,
+// });
 
 // Routes
 const usersRoute = require('./routes/users');
