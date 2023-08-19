@@ -8,7 +8,7 @@ const app = express();
 require('dotenv').config();
 const { errors } = require('celebrate');
 
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 3000;
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const { requestLogger, errorLogger } = require('./middlewares/logger');
